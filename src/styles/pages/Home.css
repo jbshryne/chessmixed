@@ -1,0 +1,33 @@
+#home-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(17, 15, 12, 0.5);
+  width: 100vw;
+}
+
+.logo-text {
+  font-size: 3.2em;
+  line-height: 1.1;
+  width: fit-content;
+}
+
+.logo-text-chess {
+  color: rgb(255, 253, 243);
+  background-color: rgba(8, 6, 6, 0.9);
+  padding: 10px 3px 10px 10px;
+  border-style: outset;
+}
+
+.logo-text-mixed {
+  color: rgb(8, 6, 6);
+  background-color: rgba(255, 253, 243, 0.9);
+  padding: 10px 10px 10px 0px;
+  border-style: outset;
+}
+
+#hero-image {
+  max-width: 960px;
+  width: 90vw;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.8);
+}
