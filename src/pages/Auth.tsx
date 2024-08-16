@@ -1,4 +1,4 @@
-import React from "react";
+import ConnectionChecker from "../components/ConnectionChecker";
 
 type AuthProps = {
   isLoggedIn: boolean;
@@ -6,9 +6,13 @@ type AuthProps = {
 };
 
 const Auth = ({ isLoggedIn, setIsLoggedIn }: AuthProps) => {
-  console.log(isLoggedIn, setIsLoggedIn);
+  console.log(typeof isLoggedIn, typeof setIsLoggedIn);
 
-  return <div>Auth</div>;
+  return (
+    <div>
+      <ConnectionChecker />
+    </div>
+  );
 };
 
 export default Auth;

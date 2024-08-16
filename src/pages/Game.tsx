@@ -1,4 +1,4 @@
-import GameplayBoard from "../components/GameplayBoard";
+import Board from "../components/Board";
 import StatusBox from "../components/StatusBox";
 
 const Game = () => {
@@ -6,7 +6,7 @@ const Game = () => {
     <div className="page-container">
       <StatusBox>Black</StatusBox>
       <div className="board-container">
-        <GameplayBoard />
+        <Board />
       </div>
       <StatusBox>White</StatusBox>
     </div>
