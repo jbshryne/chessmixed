@@ -7,6 +7,7 @@ import Game from "./pages/Game";
 import Auth from "./pages/Auth";
 import Lobby from "./pages/Lobby";
 import Games from "./pages/Games";
+import NewGame from "./pages/NewGame";
 
 const apiUrl: string = import.meta.env.VITE_API_URL;
 
@@ -61,6 +62,14 @@ function App() {
             element={
               // <AuthChecker targetUrl="/game">
               <Game />
+              // </AuthChecker>
+            }
+          />
+          <Route
+            path="/new-game"
+            element={
+              // <AuthChecker targetUrl="/game">
+              <NewGame />
               // </AuthChecker>
             }
           />

@@ -9,7 +9,7 @@ const ConnectionChecker = () => {
 
   const handleTest = async () => {
     setHasFetched(true);
-    await fetchData(`${import.meta.env.VITE_API_URL}/hi`);
+    await fetchData("hi");
   };
 
   useEffect(() => {

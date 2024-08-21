@@ -20,14 +20,14 @@ const Header = ({ isLoggedIn, setIsLoggedIn }: AuthProps) => {
       <Link to="/">
         <button>Home</button>
       </Link>
-      <Link to="/lobby">
-        <button>Main Lobby</button>
+      <Link to="/games">
+        <button>My Games</button>
       </Link>
       <Link to="/game">
         <button>Current Game</button>
       </Link>
-      <Link to="/games">
-        <button>My Games</button>
+      <Link to="/lobby">
+        <button>Lobby</button>
       </Link>
       {!isLoggedIn ? (
         <Link to="/login">

@@ -1,4 +1,5 @@
 import ConnectionChecker from "../components/ConnectionChecker";
+import Login from "../components/Login";
 
 type AuthProps = {
   isLoggedIn: boolean;
@@ -11,6 +12,7 @@ const Auth = ({ isLoggedIn, setIsLoggedIn }: AuthProps) => {
   return (
     <div>
       <ConnectionChecker />
+      <Login />
     </div>
   );
 };

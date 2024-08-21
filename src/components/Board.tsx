@@ -6,7 +6,9 @@ const Board = () => {
 
   return (
     <>
-      <Chessboard />
+      <div className="board-container">
+        <Chessboard />
+      </div>
     </>
   );
 };
