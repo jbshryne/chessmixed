@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-// import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useFetch } from "../assets/hooks";
 import { Game, User } from "../types";
 import { Chessboard } from "react-chessboard";
@@ -8,7 +8,7 @@ import "../styles/pages/Games.css";
 const Games = () => {
   const [allGames, setAllGames] = useState<Game[]>([]);
   const [fetchData, gamesData, loading, error] = useFetch<Game[]>();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const currentUser = JSON.parse(localStorage.getItem("cm-user")!) as User;
 
@@ -29,6 +29,7 @@ const Games = () => {
   function handleGameSelection(selectedGame: Game) {
     console.log(selectedGame);
     localStorage.setItem("cm-game", JSON.stringify(selectedGame));
+    navigate("/game");
   }
 
   return (

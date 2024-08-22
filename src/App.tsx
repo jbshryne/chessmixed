@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Lobby from "./pages/Lobby";
 import Games from "./pages/Games";
 import NewGame from "./pages/NewGame";
+import AuthChecker from "./components/AuthChecker";
 
 const apiUrl: string = import.meta.env.VITE_API_URL;
 
@@ -27,7 +28,9 @@ socket.on("disconnect", () => {
 });
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? true : false);
 
   return (
     <>
@@ -44,33 +47,33 @@ function App() {
           <Route
             path="/lobby"
             element={
-              // <AuthChecker targetUrl="/lobby">
-              <Lobby />
-              // </AuthChecker>
+              <AuthChecker>
+                <Lobby />
+              </AuthChecker>
             }
           />
           <Route
             path="/games"
             element={
-              // <AuthChecker targetUrl="/games">
-              <Games />
-              // </AuthChecker>
+              <AuthChecker>
+                <Games />
+              </AuthChecker>
             }
           />
           <Route
             path="/game/"
             element={
-              // <AuthChecker targetUrl="/game">
-              <Game />
-              // </AuthChecker>
+              <AuthChecker>
+                <Game />
+              </AuthChecker>
             }
           />
           <Route
             path="/new-game"
             element={
-              // <AuthChecker targetUrl="/game">
-              <NewGame />
-              // </AuthChecker>
+              <AuthChecker>
+                <NewGame />
+              </AuthChecker>
             }
           />
         </Routes>

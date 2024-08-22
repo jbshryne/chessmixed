@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFetch } from "../assets/hooks";
+import { LoginData } from "../types";
 
-const Login = () => {
+type LoginProps = {
+  handleLogin: () => void;
+};
+
+const Login = ({ handleLogin }: LoginProps) => {
   const navigate = useNavigate();
-  const [fetchData, loginData, loading, error] = useFetch();
+  const [fetchData, loginData, loading, error] = useFetch<LoginData>();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -21,6 +26,7 @@ const Login = () => {
     if (loginData) {
       console.log(loginData);
       localStorage.setItem("cm-user", JSON.stringify(loginData.user));
+      handleLogin();
       navigate("/games");
     }
 

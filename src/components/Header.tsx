@@ -9,8 +9,8 @@ type AuthProps = {
 
 const Header = ({ isLoggedIn, setIsLoggedIn }: AuthProps) => {
   const handleLogout = () => {
-    localStorage.removeItem("chessmixed_currentUser");
-    localStorage.removeItem("chessmixed_selectedGame");
+    localStorage.removeItem("cm-user");
+    localStorage.removeItem("cm-game");
     setIsLoggedIn(false);
     window.location.reload();
   };

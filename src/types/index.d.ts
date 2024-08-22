@@ -1,24 +1,34 @@
 export type User = {
-    _id: string;
-    username: string;
-    displayName: string;
-    friends: string[];
-    games: string[];
-  }
+  _id: string;
+  username: string;
+  displayName: string;
+  friends: string[];
+  games: string[];
+}
 
 export type Player = {
-    playerId: string;
-    username: string;
-    displayName: string;
-  };
-  
-  export type Game = {
-    _id: string;
-    playerWhite: Player;
-    playerBlack: Player;
-    fen: string;
-    pgn: string;
-    currentTurn: string;
-    capturedWhite: [];
-    capturedBlack: [];
-  };
+  playerId: string;
+  username: string;
+  displayName: string;
+};
+
+export type Game = {
+  _id: string;
+  playerWhite: Player;
+  playerBlack: Player;
+  fen: string;
+  pgn: string;
+  currentTurn: string;
+  capturedWhite: [];
+  capturedBlack: [];
+};
+
+type LoginData = {
+  success: boolean;
+  user: User;
+};
+
+export type AuthProps = {
+  isLoggedIn: boolean;
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+};

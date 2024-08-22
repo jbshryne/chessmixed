@@ -1,18 +1,18 @@
 import ConnectionChecker from "../components/ConnectionChecker";
 import Login from "../components/Login";
-
-type AuthProps = {
-  isLoggedIn: boolean;
-  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import { AuthProps } from "../types";
 
 const Auth = ({ isLoggedIn, setIsLoggedIn }: AuthProps) => {
   console.log(typeof isLoggedIn, typeof setIsLoggedIn);
 
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
   return (
     <div>
       <ConnectionChecker />
-      <Login />
+      <Login handleLogin={handleLogin} />
     </div>
   );
 };
