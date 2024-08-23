@@ -3,17 +3,20 @@ import "../styles/components/Board.css";
 import { Game } from "../types";
 
 type BoardProps = {
-  fetchedGame: Game | null;
+  game?: Game | null;
   // setFetchedGame: any;
 };
 
-const Board = ({ fetchedGame }: BoardProps) => {
-  console.log(Chessboard);
+const Board = ({ game }: BoardProps) => {
+  // console.log(Chessboard);
 
   return (
     <>
       <div className="board-container">
-        <Chessboard position={fetchedGame?.fen} />
+        <Chessboard
+          position={game?.fen}
+          boardOrientation={game?.povColor === "b" ? "black" : "white"}
+        />
       </div>
     </>
   );

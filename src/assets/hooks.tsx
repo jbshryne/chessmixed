@@ -1,24 +1,27 @@
 import { useState } from "react";
 
 export function useFetch<T>(): [
-  (urlTag: string, reqBody?: Record<string, unknown>) => Promise<void>,
-  T | null,
-  boolean,
-  Error | null
+  (
+    urlTag: string,
+    reqBody?: Record<string, unknown>,
+    reqType?: string
+  ) => Promise<void>,
+  { data: T | null; loading: boolean; error: Error | null }
 ] {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchData = async (
+  const fetchReq = async (
     urlTag: string,
-    reqBody: Record<string, unknown> | undefined
+    reqBody?: Record<string, unknown> | undefined,
+    reqType?: string | undefined
   ) => {
     setLoading(true);
     setError(null);
 
     const reqObject: RequestInit = {
-      method: reqBody ? "POST" : "GET",
+      method: reqType || (reqBody ? "POST" : "GET"),
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,5 +45,11 @@ export function useFetch<T>(): [
     }
   };
 
-  return [fetchData, data, loading, error];
+  const fetchRes = {
+    data,
+    loading,
+    error,
+  };
+
+  return [fetchReq, fetchRes];
 }

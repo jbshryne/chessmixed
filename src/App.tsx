@@ -3,12 +3,12 @@ import { io } from "socket.io-client";
 import { Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
 import Home from "./pages/Home";
-import Game from "./pages/Game";
 import Auth from "./pages/Auth";
-import Lobby from "./pages/Lobby";
-import Games from "./pages/Games";
-import NewGame from "./pages/NewGame";
 import AuthChecker from "./components/AuthChecker";
+import Games from "./pages/Games";
+import GamePlay from "./pages/GamePlay";
+import GameSetup from "./pages/GameSetup";
+import Lobby from "./pages/Lobby";
 
 const apiUrl: string = import.meta.env.VITE_API_URL;
 
@@ -64,7 +64,7 @@ function App() {
             path="/game/"
             element={
               <AuthChecker>
-                <Game />
+                <GamePlay />
               </AuthChecker>
             }
           />
@@ -72,7 +72,7 @@ function App() {
             path="/new-game"
             element={
               <AuthChecker>
-                <NewGame />
+                <GameSetup />
               </AuthChecker>
             }
           />

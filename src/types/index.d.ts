@@ -1,3 +1,5 @@
+import { Color, Piece } from "chess.js"
+
 export type User = {
   _id: string;
   username: string;
@@ -18,9 +20,10 @@ export type Game = {
   playerBlack: Player;
   fen: string;
   pgn: string;
-  currentTurn: string;
-  capturedWhite: [];
-  capturedBlack: [];
+  povColor: Color;
+  currentTurn: Color;
+  capturedWhite: Piece[];
+  capturedBlack: Piece[];
 };
 
 type LoginData = {
