@@ -4,5 +4,8 @@
   margin: 5px;
   border-radius: 3%;
   background-color: rgb(83, 69, 69);
+}
+
+.full-board {
   width: 480px;
 }

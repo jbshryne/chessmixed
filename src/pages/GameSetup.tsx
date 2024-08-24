@@ -7,6 +7,11 @@ import { useEffect } from "react";
 const NewGame = () => {
   const navigate = useNavigate();
 
+  const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
+  if (!selectedGame) {
+    navigate("/games");
+  }
+
   const [createGameReq, createGameRes] = useFetch<{
     game: Game;
     success: boolean;

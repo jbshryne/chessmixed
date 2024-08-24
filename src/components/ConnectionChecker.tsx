@@ -3,17 +3,19 @@ import { useFetch } from "../assets/hooks";
 
 const ConnectionChecker = () => {
   const [status, setStatus] = useState("");
-  const [hasFetched, setHasFetched] = useState(false);
+  // const [hasFetched, setHasFetched] = useState(false);
 
-  const [fetchData, data, loading, error] = useFetch<{ success: boolean }>();
+  const [pokeServerReq, pokeServerRes] = useFetch<{ success: boolean }>();
 
   const handleTest = async () => {
-    setHasFetched(true);
-    await fetchData("hi");
+    // setHasFetched(true);
+    await pokeServerReq("hi");
   };
 
   useEffect(() => {
-    if (!hasFetched) return;
+    // if (!hasFetched) return;
+
+    const { data, loading, error } = pokeServerRes;
 
     if (loading) {
       setStatus("Checking connection...");
@@ -22,7 +24,7 @@ const ConnectionChecker = () => {
     } else if (data?.success) {
       setStatus("Connected!");
     }
-  }, [loading, error, data, hasFetched]);
+  }, [pokeServerReq, pokeServerRes]);
 
   return (
     <div>

@@ -9,7 +9,8 @@ type LoginProps = {
 
 const Login = ({ handleLogin }: LoginProps) => {
   const navigate = useNavigate();
-  const [fetchData, loginData, loading, error] = useFetch<LoginData>();
+  const [loginReq, loginRes] = useFetch<LoginData>();
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -19,13 +20,15 @@ const Login = ({ handleLogin }: LoginProps) => {
     e.preventDefault();
     console.log(formData);
 
-    await fetchData("login", formData);
+    await loginReq("login", formData);
   };
 
   useEffect(() => {
-    if (loginData) {
-      console.log(loginData);
-      localStorage.setItem("cm-user", JSON.stringify(loginData.user));
+    const { data, loading, error } = loginRes;
+
+    if (data) {
+      console.log(data);
+      localStorage.setItem("cm-user", JSON.stringify(data.user));
       handleLogin();
       navigate("/games");
     }
@@ -37,7 +40,7 @@ const Login = ({ handleLogin }: LoginProps) => {
     if (error) {
       console.log(error);
     }
-  }, [loginData, loading, error, navigate]);
+  }, [loginReq, loginRes, handleLogin, navigate]);
 
   return (
     <div>

@@ -1,14 +1,21 @@
-import { useState } from "react";
-// import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Board from "../components/Board";
 import StatusBox from "../components/StatusBox";
-import { Game as GameType } from "../types";
+import { Game } from "../types";
 
-const Game = () => {
-  const selectedGame: GameType = JSON.parse(localStorage.getItem("cm-game")!);
-  // const navigate = useNavigate();
+const GamePlay = () => {
+  const navigate = useNavigate();
 
-  const [fetchedGame] = useState<GameType | null>(selectedGame);
+  const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
+
+  useEffect(() => {
+    if (!selectedGame) {
+      navigate("/games");
+    }
+  }, [navigate, selectedGame]);
+
+  const [fetchedGame] = useState<Game | null>(selectedGame);
 
   let displayNameWhite = fetchedGame?.playerWhite.displayName;
   let displayNameBlack = fetchedGame?.playerBlack.displayName;
@@ -31,4 +38,4 @@ const Game = () => {
   );
 };
 
-export default Game;
+export default GamePlay;
