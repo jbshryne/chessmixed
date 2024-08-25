@@ -87,9 +87,16 @@ const NewGame = () => {
   // CREATE GAME
   function createGame() {
     console.log("Create Game");
+
+    if (!playerWhiteId || !playerBlackId) {
+      alert("Please select an opponent");
+      return;
+    }
+
     createGameReq("games/create", {
       playerWhiteId,
       playerBlackId,
+      povColor,
       currentTurn,
       fen,
     });
