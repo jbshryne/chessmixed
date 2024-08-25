@@ -7,7 +7,7 @@ import Auth from "./pages/Auth";
 import AuthChecker from "./components/AuthChecker";
 import Games from "./pages/Games";
 import GamePlay from "./pages/GamePlay";
-import GameSetup from "./pages/GameSetup";
+import GameSetup from "./pages/NewGame";
 import Lobby from "./pages/Lobby";
 
 const apiUrl: string = import.meta.env.VITE_API_URL;

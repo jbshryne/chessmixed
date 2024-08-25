@@ -35,6 +35,12 @@ const Games = () => {
     }
   }, [fetchGamesRes]);
 
+  function handleNewGame() {
+    localStorage.removeItem("cm-game");
+    console.log("New Game");
+    navigate("/new-game");
+  }
+
   function handleGameSelection(selectedGame: Game) {
     console.log(selectedGame);
     localStorage.setItem("cm-game", JSON.stringify(selectedGame));
@@ -63,7 +69,7 @@ const Games = () => {
   return (
     <div className="page-container">
       <h1>{currentUser.displayName}'s Games</h1>
-      <button onClick={() => navigate("/new-game")}>Create New Game</button>
+      <button onClick={() => handleNewGame()}>Create New Game</button>
       <ul id="games-container">
         {allGames.map((game: Game) => {
           const opponentName =
@@ -86,7 +92,7 @@ const Games = () => {
                   id={game._id}
                   position={game.fen}
                   arePiecesDraggable={false}
-                  // boardOrientation={game.orientation}
+                  boardOrientation={game.povColor === "b" ? "black" : "white"}
                 />
               </div>
 
