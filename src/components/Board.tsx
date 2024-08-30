@@ -25,13 +25,14 @@ const Board = ({
   // console.log(Chessboard);
 
   const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
+  const playerWhiteId = game?.playerWhite.playerId;
+  const playerBlackId = game?.playerBlack.playerId;
   let boardOrientation: BoardOrientation;
 
-  if (povColor && game?.playerWhite.playerId === game?.playerBlack.playerId) {
+  if (povColor && playerWhiteId === playerBlackId) {
     boardOrientation = povColor === "b" ? "black" : "white";
   } else {
-    boardOrientation =
-      game?.playerWhite.playerId === currentUser._id ? "white" : "black";
+    boardOrientation = playerWhiteId === currentUser._id ? "white" : "black";
   }
 
   return (

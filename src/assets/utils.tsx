@@ -1,3 +1,5 @@
+import { Color } from "chess.js";
+
 export const convertPositionObjectToFen = (
   position: Record<string, string>
 ) => {
@@ -40,4 +42,8 @@ export const convertPositionObjectToFen = (
   }
 
   return fen;
+};
+
+export const enemyColor = (color: Color): Color => {
+  return color === "w" ? "b" : "w";
 };

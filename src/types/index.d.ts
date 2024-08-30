@@ -22,8 +22,7 @@ export type Game = {
   pgn: string;
   povColor: Color;
   currentTurn: Color;
-  capturedWhite: Piece[];
-  capturedBlack: Piece[];
+  captured: Piece[];
 };
 
 export type MoveShort = {

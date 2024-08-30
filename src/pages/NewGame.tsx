@@ -106,6 +106,7 @@ const NewGame = () => {
     const { data, error, loading } = createGameRes;
 
     if (data) {
+      console.log("Game created:", data.game);
       localStorage.setItem("cm-game", JSON.stringify(data.game));
       navigate("/game");
     }

@@ -5,15 +5,22 @@ import Board from "../components/Board";
 import StatusBox from "../components/StatusBox";
 import { Game, MoveShort } from "../types";
 import { Chess, Color, Square } from "chess.js";
+import { enemyColor } from "../assets/utils";
 
 const GamePlay = () => {
   const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
   const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
+  const chessObject = new Chess();
+  if (selectedGame.pgn) {
+    chessObject.loadPgn(selectedGame.pgn);
+  } else {
+    chessObject.load(selectedGame.fen);
+  }
 
-  const [chess, setChess] = useState<Chess>(new Chess(selectedGame.fen));
+  const [chess, setChess] = useState<Chess>(chessObject);
   const navigate = useNavigate();
 
-  const [makeMoveReq, makeMoveRes] = useFetch();
+  const [makeMoveReq, makeMoveRes] = useFetch<Game>();
 
   useEffect(() => {
     if (!selectedGame) {
@@ -35,10 +42,28 @@ const GamePlay = () => {
   }
 
   function makeAMove(move: MoveShort) {
-    const chessCopy = new Chess(chess.fen());
+    const chessCopy = new Chess();
+    chessCopy.loadPgn(chess.pgn());
+
     const result = chessCopy.move(move);
     setChess(chessCopy);
-    console.log("pgn:", chessCopy.pgn());
+    // console.log("pgn:", chessCopy.pgn());
+
+    const currentGame = JSON.parse(localStorage.getItem("cm-game")!);
+    const newCaptured = [...currentGame.captured];
+    console.log("newCaptured:", newCaptured);
+
+    if (result.captured) {
+      console.log("captured:", result.captured);
+      newCaptured.push({
+        color: enemyColor(result.color),
+        type: result.captured,
+      });
+      // localStorage.setItem(
+      //   "cm-game",
+      //   JSON.stringify({ ...selectedGame, captured: newCaptured })
+      // );
+    }
 
     if (move) {
       makeMoveReq(
@@ -47,6 +72,7 @@ const GamePlay = () => {
           fen: chessCopy.fen(),
           pgn: chessCopy.pgn(),
           currentTurn: chessCopy.turn(),
+          captured: newCaptured,
         },
         "PUT"
       );
@@ -59,12 +85,14 @@ const GamePlay = () => {
     const move = makeAMove({
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q", // always promote to a queen for example simplicity
+      promotion: "q", // CHANGE THIS TO USER INPUT
     });
 
     // illegal move
-    console.log("move:", move);
+    // console.log("move:", move);
     if (move === null) return false;
+
+    // localStorage.setItem("cm-game", JSON.stringify(selectedGame));
 
     return true;
   }
