@@ -1,4 +1,4 @@
-import { Color, Piece } from "chess.js"
+import { Color, Piece, PieceSymbol } from "chess.js"
 
 export type User = {
   _id: string;
@@ -25,6 +25,12 @@ export type Game = {
   capturedWhite: Piece[];
   capturedBlack: Piece[];
 };
+
+export type MoveShort = {
+  from: string;
+  to: string;
+  promotion?: PieceSymbol
+}
 
 type LoginData = {
   success: boolean;
