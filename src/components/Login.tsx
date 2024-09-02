@@ -20,7 +20,7 @@ const Login = ({ handleLogin }: LoginProps) => {
     e.preventDefault();
     console.log(formData);
 
-    await loginReq("login", formData);
+    await loginReq("login", "POST", formData);
   };
 
   useEffect(() => {

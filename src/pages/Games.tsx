@@ -17,7 +17,7 @@ const Games = () => {
   const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
 
   useEffect(() => {
-    fetchGamesReq("games", { userId: currentUser._id });
+    fetchGamesReq("games", "POST", { userId: currentUser._id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -49,7 +49,7 @@ const Games = () => {
 
   function handleDeleteGame(gameId: string) {
     console.log("Delete Game", gameId);
-    deleteGameReq(`games/delete`, { gameId }, "DELETE");
+    deleteGameReq(`games/delete`, "DELETE", { gameId });
   }
 
   useEffect(() => {

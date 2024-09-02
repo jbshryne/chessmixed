@@ -29,6 +29,8 @@ export type MoveShort = {
   from: string;
   to: string;
   promotion?: PieceSymbol
+  playerId?: string
+  isCpuMove?: boolean
 }
 
 type LoginData = {

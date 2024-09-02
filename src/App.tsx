@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
+import AuthChecker from "./components/AuthChecker";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
-import AuthChecker from "./components/AuthChecker";
 import Games from "./pages/Games";
 import GamePlay from "./pages/GamePlay";
 import GameSetup from "./pages/NewGame";
@@ -18,18 +18,25 @@ if (!apiUrl) {
 
 const socket = io(apiUrl);
 
-// Example of setting up event listeners
-socket.on("connect", () => {
-  console.log("Connected to the server");
-});
-
-socket.on("disconnect", () => {
-  console.log("Disconnected from the server");
-});
-
 function App() {
-  const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
+  useEffect(() => {
+    function onConnect() {
+      console.log("Connected!");
+    }
 
+    function onDisconnect() {
+      console.log("Disconnected!");
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
+  }, []);
+  const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
   const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? true : false);
 
   return (

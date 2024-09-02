@@ -93,7 +93,7 @@ const NewGame = () => {
       return;
     }
 
-    createGameReq("games/create", {
+    createGameReq("games/create", "POST", {
       playerWhiteId,
       playerBlackId,
       povColor,
@@ -173,7 +173,11 @@ const NewGame = () => {
       </section>
       <section>
         <span>What is the starting position?</span>
-        <Board getPositionObject={handleSetFen} povColor={povColor} />
+        <Board
+          getPositionObject={handleSetFen}
+          isDraggablePiece={() => true}
+          povColor={povColor}
+        />
       </section>
       <button onClick={() => createGame()}>Create Game</button>
     </div>

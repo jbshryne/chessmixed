@@ -3,8 +3,8 @@ import { useState } from "react";
 export function useFetch<T>(): [
   (
     urlTag: string,
-    reqBody?: Record<string, unknown>,
-    reqType?: string
+    reqType?: string,
+    reqBody?: Record<string, unknown>
   ) => Promise<void>,
   { data: T | null; loading: boolean; error: Error | null }
 ] {
@@ -14,8 +14,8 @@ export function useFetch<T>(): [
 
   const fetchReq = async (
     urlTag: string,
-    reqBody?: Record<string, unknown> | undefined,
-    reqType?: string | undefined
+    reqType?: string | undefined,
+    reqBody?: Record<string, unknown> | undefined
   ) => {
     setLoading(true);
     setError(null);

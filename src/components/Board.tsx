@@ -2,28 +2,31 @@ import { Chessboard } from "react-chessboard";
 import "../styles/components/Board.css";
 import { Game, User } from "../types";
 import { Color, Square } from "chess.js";
-import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+import {
+  BoardOrientation,
+  Piece as PieceSymbol,
+} from "react-chessboard/dist/chessboard/types";
 
 type BoardProps = {
-  game?: Game | null;
+  game?: Game;
   position?: string;
+  getPositionObject: (position: Record<string, string>) => void;
+  isDraggablePiece: (piece: PieceSymbol, square?: Square) => boolean;
   onDrop?: (sourceSquare: Square, targetSquare: Square) => boolean;
   size?: "full" | "thumbnail";
   povColor?: Color;
   // position?: Record<string, string>;
-  getPositionObject: (position: Record<string, string>) => void;
 };
 
 const Board = ({
   game,
   position,
+  getPositionObject,
+  isDraggablePiece,
+  onDrop,
   size = "full",
   povColor,
-  getPositionObject,
-  onDrop,
 }: BoardProps) => {
-  // console.log(Chessboard);
-
   const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
   const playerWhiteId = game?.playerWhite.playerId;
   const playerBlackId = game?.playerBlack.playerId;
@@ -40,6 +43,7 @@ const Board = ({
       <div className={`board-container ${size === "full" ? "full-board" : ""}`}>
         <Chessboard
           position={position}
+          isDraggablePiece={(args) => isDraggablePiece(args.piece)}
           boardOrientation={boardOrientation}
           getPositionObject={(position) => getPositionObject(position)}
           onPieceDrop={onDrop}
