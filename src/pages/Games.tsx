@@ -41,10 +41,14 @@ const Games = () => {
     navigate("/new-game");
   }
 
-  function handleGameSelection(selectedGame: Game) {
+  function handleGameSelection(
+    selectedGame: Game,
+    gameMode: "play" | "edit" = "play"
+  ) {
     console.log(selectedGame);
     localStorage.setItem("cm-game", JSON.stringify(selectedGame));
-    navigate("/game");
+    if (gameMode === "play") navigate("/game");
+    if (gameMode === "edit") navigate("/edit-game");
   }
 
   function handleDeleteGame(gameId: string) {
@@ -98,7 +102,9 @@ const Games = () => {
 
               <section className="controls">
                 <button onClick={() => handleGameSelection(game)}>Play</button>
-                <button>Edit</button>
+                <button onClick={() => handleGameSelection(game, "edit")}>
+                  Edit
+                </button>
                 <button onClick={() => handleDeleteGame(game._id)}>
                   Delete
                 </button>

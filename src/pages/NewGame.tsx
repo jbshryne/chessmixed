@@ -9,9 +9,15 @@ import Dropdown from "react-dropdown";
 import "react-dropdown/style.css";
 
 const NewGame = () => {
-  const [playerWhiteId, setPlayerWhiteId] = useState<string>("");
-  const [playerBlackId, setPlayerBlackId] = useState<string>("");
+  const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
+
+  const [playerWhiteId, setPlayerWhiteId] = useState<string>(currentUser._id);
+  const [playerBlackId, setPlayerBlackId] = useState<string>(currentUser._id);
   const [friends, setFriends] = useState<Record<string, string>[]>([]);
+  const [selectedOpponent, setSelectedOpponent] = useState<{
+    value: string;
+    label: string;
+  }>({ value: currentUser._id, label: "Yourself" });
   const [povColor, setPovColor] = useState<Color>("w");
   const [fen, setFen] = useState<string>("");
   const [currentTurn, setCurrentTurn] = useState<Color>("w");
@@ -30,12 +36,13 @@ const NewGame = () => {
   }>();
 
   const handleSetFen = (position: Record<string, string>) => {
-    const fen = convertPositionObjectToFen(position);
-    setFen(fen);
+    const newFen = convertPositionObjectToFen(position);
+    setFen(newFen);
   };
 
   const handleSelectOpponent = (value: string) => {
     const selectedFriend = friendsList.find((friend) => friend.value === value);
+    setSelectedOpponent(selectedFriend!);
 
     if (povColor === "w") {
       setPlayerBlackId(selectedFriend!.value);
@@ -44,19 +51,19 @@ const NewGame = () => {
     }
   };
 
-  const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
   if (povColor === "b" && playerBlackId !== currentUser._id) {
     setPlayerBlackId(currentUser._id);
   } else if (povColor === "w" && playerWhiteId !== currentUser._id) {
     setPlayerWhiteId(currentUser._id);
   }
 
-  // POPULATE FRIENDS LIST
+  // POPULATE FRIENDS LIST (REQUEST)
   useEffect(() => {
     fetchFriendsReq("friends/" + currentUser._id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // POPULATE FRIENDS LIST (RESPONSE)
   useEffect(() => {
     const { data, loading, error } = fetchFriendsRes;
 
@@ -75,6 +82,10 @@ const NewGame = () => {
     {
       value: currentUser._id,
       label: "Yourself",
+    },
+    {
+      value: "cpu",
+      label: "Computer",
     },
   ];
   for (let i = 0; i < friends.length; i++) {
@@ -146,7 +157,7 @@ const NewGame = () => {
         <span>Who is your opponent?</span>
         <Dropdown
           options={friendsList}
-          // value={friendsList[0]}
+          value={selectedOpponent}
           onChange={(option) => handleSelectOpponent(option.value)}
         />
       </section>
@@ -173,11 +184,8 @@ const NewGame = () => {
       </section>
       <section>
         <span>What is the starting position?</span>
-        <Board
-          getPositionObject={handleSetFen}
-          isDraggablePiece={() => true}
-          povColor={povColor}
-        />
+        {/* <div></div> */}
+        <Board getPositionObject={handleSetFen} povColor={povColor} />
       </section>
       <button onClick={() => createGame()}>Create Game</button>
     </div>

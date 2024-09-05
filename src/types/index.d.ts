@@ -29,6 +29,7 @@ export type MoveShort = {
   from: string;
   to: string;
   promotion?: PieceSymbol
+  position?: string;
   playerId?: string
   isCpuMove?: boolean
 }

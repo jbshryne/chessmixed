@@ -10,8 +10,8 @@ import {
 type BoardProps = {
   game?: Game;
   position?: string;
-  getPositionObject: (position: Record<string, string>) => void;
-  isDraggablePiece: (piece: PieceSymbol, square?: Square) => boolean;
+  getPositionObject?: (position: Record<string, string>) => void;
+  isDraggablePiece?: (piece: PieceSymbol, square?: Square) => boolean;
   onDrop?: (sourceSquare: Square, targetSquare: Square) => boolean;
   size?: "full" | "thumbnail";
   povColor?: Color;
@@ -21,8 +21,8 @@ type BoardProps = {
 const Board = ({
   game,
   position,
-  getPositionObject,
-  isDraggablePiece,
+  getPositionObject = () => {},
+  isDraggablePiece = () => true,
   onDrop,
   size = "full",
   povColor,
@@ -47,7 +47,9 @@ const Board = ({
           boardOrientation={boardOrientation}
           getPositionObject={(position) => getPositionObject(position)}
           onPieceDrop={onDrop}
-        />
+        >
+          {/* <SparePiece piece="wN" width={80} dndId="didi" /> */}
+        </Chessboard>
       </div>
     </>
   );

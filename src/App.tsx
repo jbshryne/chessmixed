@@ -6,8 +6,9 @@ import AuthChecker from "./components/AuthChecker";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Games from "./pages/Games";
+import NewGame from "./pages/NewGame";
 import GamePlay from "./pages/GamePlay";
-import GameSetup from "./pages/NewGame";
+import GameSetup from "./pages/GameSetup";
 import Lobby from "./pages/Lobby";
 
 const apiUrl: string = import.meta.env.VITE_API_URL;
@@ -36,6 +37,7 @@ function App() {
       socket.off("disconnect", onDisconnect);
     };
   }, []);
+
   const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
   const [isLoggedIn, setIsLoggedIn] = useState(currentUser ? true : false);
 
@@ -77,6 +79,14 @@ function App() {
           />
           <Route
             path="/new-game"
+            element={
+              <AuthChecker>
+                <NewGame />
+              </AuthChecker>
+            }
+          />
+          <Route
+            path="/edit-game"
             element={
               <AuthChecker>
                 <GameSetup />
