@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Game } from "../types";
+import { Color } from "chess.js";
 
 export function useFetch<T>(): [
   (
@@ -52,4 +55,76 @@ export function useFetch<T>(): [
   };
 
   return [fetchReq, fetchRes];
+}
+
+export function useNavigateGames() {
+  // const [savedGame, setSavedGame] = useState<Game | null>(null);
+  const navigate = useNavigate();
+
+  const [saveGameReq, saveGameRes] = useFetch<Game>();
+  const [deleteGameReq, deleteGameRes] = useFetch<{ success: boolean }>();
+
+  function _selectGame(selectedGame: Game, gameMode: "play" | "edit") {
+    localStorage.setItem("cm-game", JSON.stringify(selectedGame));
+    if (gameMode === "play") navigate("/game");
+    if (gameMode === "edit") navigate("/edit-game");
+  }
+
+  function newGame() {
+    localStorage.removeItem("cm-game");
+    navigate("/new-game");
+  }
+
+  function playGame(selectedGame: Game) {
+    _selectGame(selectedGame, "play");
+  }
+
+  function editGame(selectedGame: Game) {
+    _selectGame(selectedGame, "edit");
+  }
+
+  let savedGame: Game;
+
+  function saveGame(selectedGame: Game, fen: string, currentTurn: Color) {
+    const newFen = fen + " " + currentTurn + " KQkq - 0 1";
+    savedGame = { ...selectedGame, fen: newFen, currentTurn };
+    saveGameReq(`games/${selectedGame._id}`, "PUT", savedGame);
+  }
+
+  useEffect(() => {
+    const { data, loading, error } = saveGameRes;
+
+    if (data) {
+      console.log("Game successfully saved", data);
+      playGame(data);
+    }
+    if (loading) {
+      console.log("Saving...");
+    }
+    if (error) {
+      console.error(error);
+    }
+    // eslint-disable-next-line
+  }, [saveGameRes]);
+
+  function deleteGame(gameId: string) {
+    const confirmation = confirm("Delete this game?");
+    if (confirmation) deleteGameReq(`games/delete`, "DELETE", { gameId });
+  }
+
+  useEffect(() => {
+    const { data, loading, error } = deleteGameRes;
+
+    if (data?.success) {
+      location.reload();
+    }
+    if (loading) {
+      console.log("Deleting...");
+    }
+    if (error) {
+      console.error(error);
+    }
+  }, [deleteGameRes]);
+
+  return { newGame, playGame, editGame, saveGame, deleteGame };
 }

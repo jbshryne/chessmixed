@@ -1,20 +1,15 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useFetch } from "../assets/hooks";
+import { useFetch, useNavigateGames } from "../assets/hooks";
 import { Game, User } from "../types";
 import { Chessboard } from "react-chessboard";
 import "../styles/pages/Games.css";
 
 const Games = () => {
+  const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
   const [allGames, setAllGames] = useState<Game[]>([]);
-  const navigate = useNavigate();
 
   const [fetchGamesReq, fetchGamesRes] = useFetch<Game[]>();
-  const [deleteGameReq, deleteGameRes] = useFetch<{
-    success: boolean;
-  }>();
-
-  const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
+  const { newGame, playGame, editGame, deleteGame } = useNavigateGames();
 
   useEffect(() => {
     fetchGamesReq("games", "POST", { userId: currentUser._id });
@@ -35,45 +30,10 @@ const Games = () => {
     }
   }, [fetchGamesRes]);
 
-  function handleNewGame() {
-    localStorage.removeItem("cm-game");
-    console.log("New Game");
-    navigate("/new-game");
-  }
-
-  function handleGameSelection(
-    selectedGame: Game,
-    gameMode: "play" | "edit" = "play"
-  ) {
-    console.log(selectedGame);
-    localStorage.setItem("cm-game", JSON.stringify(selectedGame));
-    if (gameMode === "play") navigate("/game");
-    if (gameMode === "edit") navigate("/edit-game");
-  }
-
-  function handleDeleteGame(gameId: string) {
-    console.log("Delete Game", gameId);
-    deleteGameReq(`games/delete`, "DELETE", { gameId });
-  }
-
-  useEffect(() => {
-    const { data, loading, error } = deleteGameRes;
-
-    if (data?.success) {
-      location.reload();
-    }
-    if (loading) {
-      console.log("Deleting...");
-    }
-    if (error) {
-      console.error(error);
-    }
-  }, [deleteGameRes]);
-
   return (
     <div className="page-container">
       <h1>{currentUser.displayName}'s Games</h1>
-      <button onClick={() => handleNewGame()}>Create New Game</button>
+      <button onClick={() => newGame()}>Create New Game</button>
       <ul id="games-container">
         {allGames.map((game: Game) => {
           const opponentName =
@@ -89,7 +49,7 @@ const Games = () => {
 
               <div
                 className="board-container game-thumbnail"
-                onClick={() => handleGameSelection(game)}
+                onClick={() => playGame(game)}
               >
                 <Chessboard
                   // key={game._id}
@@ -101,13 +61,9 @@ const Games = () => {
               </div>
 
               <section className="controls">
-                <button onClick={() => handleGameSelection(game)}>Play</button>
-                <button onClick={() => handleGameSelection(game, "edit")}>
-                  Edit
-                </button>
-                <button onClick={() => handleDeleteGame(game._id)}>
-                  Delete
-                </button>
+                <button onClick={() => playGame(game)}>Play</button>
+                <button onClick={() => editGame(game)}>Edit</button>
+                <button onClick={() => deleteGame(game._id)}>Delete</button>
               </section>
             </li>
           );

@@ -1,23 +1,26 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import socket from "../assets/socket";
-import { useFetch } from "../assets/hooks";
-import Board from "../components/Board";
-import StatusBox from "../components/StatusBox";
+import { useFetch, useNavigateGames } from "../assets/hooks";
 import { Game, MoveShort } from "../types";
 import { Chess, Move, Color, Square } from "chess.js";
 import { Piece as PieceSymbol } from "react-chessboard/dist/chessboard/types";
 import { Engine } from "../assets/classes";
 import { enemyColor } from "../assets/utils";
+import Board from "../components/Board";
+import StatusBox from "../components/StatusBox";
 
 const GamePlay = () => {
   const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
   const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
 
+  const engine = useRef(new Engine());
+  const navigate = useNavigate();
+
   const [fetchGameReq, fetchGameRes] = useFetch<Game>();
   const [makeMoveReq, makeMoveRes] = useFetch<Game>();
-  const navigate = useNavigate();
-  const engine = useRef(new Engine());
+
+  const { editGame } = useNavigateGames();
 
   const chessObject = new Chess();
   if (selectedGame.pgn) {
@@ -105,24 +108,24 @@ const GamePlay = () => {
     }
   }, [chess]);
 
-  function makeAMove(move: MoveShort) {
-    const chessCopy = new Chess();
+  function makeAMove(move: MoveShort): [Move, Chess] | [] {
+    const newChess = new Chess();
     let newMove: Move;
 
-    if (move.position) chessCopy.load(move.position);
-    else chessCopy.loadPgn(chess.pgn());
+    if (move.pgn) newChess.loadPgn(move.pgn);
+    else newChess.loadPgn(chess.pgn());
 
     try {
-      newMove = chessCopy.move(move);
+      newMove = newChess.move(move);
     } catch (error) {
-      console.log(chessCopy.ascii());
+      console.log(newChess.ascii());
       console.log("error:", error);
-      return null;
+      return [];
     }
 
     // ADD PROMOTION LOGIC HERE
 
-    setChess(chessCopy);
+    setChess(newChess);
 
     // ADD CAPTURED PIECES TO LIST
     const newCaptured = [...game.captured];
@@ -136,11 +139,11 @@ const GamePlay = () => {
     }
 
     // check
-    if (chessCopy.inCheck()) setPlayerStatus(" is in check!");
+    if (newChess.inCheck()) setPlayerStatus(" is in check!");
     else setPlayerStatus(" to move");
 
     // checkmate
-    if (chessCopy.isCheckmate()) {
+    if (newChess.isCheckmate()) {
       setPlayerStatus(" is in checkmate!");
       // return;
     }
@@ -148,14 +151,16 @@ const GamePlay = () => {
     // 'MAKE MOVE' REQUEST
     if (move) {
       makeMoveReq("games/" + game._id + "/move", "PUT", {
-        fen: chessCopy.fen(),
-        pgn: chessCopy.pgn(),
-        currentTurn: chessCopy.turn(),
+        fen: newChess.fen(),
+        pgn: newChess.pgn(),
+        currentTurn: newChess.turn(),
         captured: newCaptured,
+        isCpuMove: move.isCpuMove,
+        validMoves: newChess.moves(),
       });
     }
 
-    return newMove;
+    return [newMove, newChess];
   }
 
   // 'MAKE MOVE' RESPONSE
@@ -172,7 +177,7 @@ const GamePlay = () => {
   }, [makeMoveRes]);
 
   function onDrop(sourceSquare: Square, targetSquare: Square) {
-    const move = makeAMove({
+    const [newMove, newChess] = makeAMove({
       from: sourceSquare,
       to: targetSquare,
       promotion: "q", // CHANGE THIS TO USER INPUT
@@ -180,7 +185,7 @@ const GamePlay = () => {
     });
 
     // illegal move
-    if (move === null) return false;
+    if (newMove === null) return false;
 
     if (!isLocalGame && !isCpuGame) {
       console.log("sending move to server...");
@@ -200,11 +205,11 @@ const GamePlay = () => {
     // Evaluate the new position with Stockfish
     if (
       isCpuGame &&
-      ((move.color === "b" && playerWhiteId === "cpu") ||
-        (move.color === "w" && playerBlackId === "cpu"))
+      ((newMove?.color === "b" && playerWhiteId === "cpu") ||
+        (newMove?.color === "w" && playerBlackId === "cpu"))
     ) {
       engine.current.stop(); // Ensure the engine is stopped before starting a new evaluation
-      engine.current.evaluatePosition(move.after, 3); // Set depth to 15 or any desired depth
+      engine.current.evaluatePosition(newMove.after, 3); // Set depth to 15 or any desired depth
 
       // LISTEN FOR THE EVALUATION RESULT
       engine.current.onMessage(({ bestMove }) => {
@@ -212,13 +217,20 @@ const GamePlay = () => {
         if (bestMove) {
           const from = bestMove.slice(0, 2);
           const to = bestMove.slice(2, 4);
+          const promotion = bestMove.slice(4, 5) as
+            | "q"
+            | "r"
+            | "b"
+            | "n"
+            | undefined;
 
           makeAMove({
             from,
             to,
+            promotion,
+            pgn: newChess?.pgn(),
             playerId: "cpu",
             isCpuMove: true,
-            position: move.after,
           });
         }
       });
@@ -239,6 +251,7 @@ const GamePlay = () => {
   useEffect(() => {
     return () => {
       engine.current.stop();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       engine.current.quit();
     };
   }, []);
@@ -263,6 +276,12 @@ const GamePlay = () => {
           (povColor === "w" ? displayNameWhite : displayNameBlack) +
             playerStatus}
       </StatusBox>
+      <section className="controls">
+        <Link to="/games">
+          <button>Back to Games</button>
+        </Link>
+        <button onClick={() => editGame(game)}>Edit Boardstate</button>
+      </section>
     </div>
   );
 };

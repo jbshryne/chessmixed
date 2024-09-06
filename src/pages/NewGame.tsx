@@ -21,6 +21,7 @@ const NewGame = () => {
   const [povColor, setPovColor] = useState<Color>("w");
   const [fen, setFen] = useState<string>("");
   const [currentTurn, setCurrentTurn] = useState<Color>("w");
+  // const [difficulty, setDifficulty] = useState<number>(1);
 
   const navigate = useNavigate();
 
@@ -110,6 +111,7 @@ const NewGame = () => {
       povColor,
       currentTurn,
       fen,
+      // difficulty: ,
     });
   }
 

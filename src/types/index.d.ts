@@ -23,13 +23,14 @@ export type Game = {
   povColor: Color;
   currentTurn: Color;
   captured: Piece[];
+  difficulty: number;
 };
 
 export type MoveShort = {
   from: string;
   to: string;
   promotion?: PieceSymbol
-  position?: string;
+  pgn?: string;
   playerId?: string
   isCpuMove?: boolean
 }
