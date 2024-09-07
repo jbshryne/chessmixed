@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigateGames } from "../assets/hooks";
-import { convertPositionObjectToFen } from "../assets/utils";
+import { confirmChoice, convertPositionObjectToFen } from "../assets/utils";
 import { Game } from "../types";
 import { Color } from "chess.js";
 import Board from "../components/Board";
@@ -24,7 +24,9 @@ const GameSetup = () => {
   };
 
   const handleDiscard = () => {
-    const confirmation = confirm("Discard these changes and return to game?");
+    const confirmation = confirmChoice(
+      "Discard these changes and return to game?"
+    );
     if (confirmation) {
       setFen(selectedGame.fen);
       playGame(selectedGame);
@@ -32,7 +34,7 @@ const GameSetup = () => {
   };
 
   const handleReset = () => {
-    const confirmation = confirm("Reset the board to starting position?");
+    const confirmation = confirmChoice("Reset the board to starting position?");
     if (confirmation) {
       setFen("start");
       setCurrentTurn("w");
@@ -40,7 +42,9 @@ const GameSetup = () => {
   };
 
   const handleSave = () => {
-    const confirmation = confirm("Save these changes and continue playing?");
+    const confirmation = confirmChoice(
+      "Save these changes and continue playing?"
+    );
     if (confirmation) {
       saveGame(selectedGame, fen, currentTurn);
     }

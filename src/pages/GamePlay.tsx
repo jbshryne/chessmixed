@@ -1,11 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  // useRef
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import socket from "../assets/socket";
-import { useFetch, useNavigateGames } from "../assets/hooks";
+import { useFetch, useNavigateGames, useCpuPlayer } from "../assets/hooks";
 import { Game, MoveShort } from "../types";
 import { Chess, Move, Color, Square } from "chess.js";
 import { Piece as PieceSymbol } from "react-chessboard/dist/chessboard/types";
-import { Engine } from "../assets/classes";
+// import { Engine } from "../assets/classes";
 import { enemyColor } from "../assets/utils";
 import Board from "../components/Board";
 import StatusBox from "../components/StatusBox";
@@ -14,13 +18,15 @@ const GamePlay = () => {
   const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
   const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
 
-  const engine = useRef(new Engine());
+  // const engine = useRef(new Engine());
   const navigate = useNavigate();
 
   const [fetchGameReq, fetchGameRes] = useFetch<Game>();
   const [makeMoveReq, makeMoveRes] = useFetch<Game>();
 
   const { editGame } = useNavigateGames();
+
+  const cpuMove = useCpuPlayer();
 
   const chessObject = new Chess();
   if (selectedGame.pgn) {
@@ -52,7 +58,7 @@ const GamePlay = () => {
       // localStorage.setItem("cm-game", JSON.stringify(data));
       setGame(data);
     }
-    if (loading) console.log("loading...");
+    if (loading) console.log("Fetching game...");
     if (error) console.log("error:", error);
   }, [fetchGameRes]);
 
@@ -108,6 +114,8 @@ const GamePlay = () => {
     }
   }, [chess]);
 
+  // const makeAMove = useCallback(
+  //   (move: MoveShort): [Move, Chess] | [] => {
   function makeAMove(move: MoveShort): [Move, Chess] | [] {
     const newChess = new Chess();
     let newMove: Move;
@@ -115,10 +123,12 @@ const GamePlay = () => {
     if (move.pgn) newChess.loadPgn(move.pgn);
     else newChess.loadPgn(chess.pgn());
 
+    // if (newChess.pgn() !== game.pgn) return [];
+
     try {
       newMove = newChess.move(move);
     } catch (error) {
-      console.log(newChess.ascii());
+      console.log("error:", newChess.pgn());
       console.log("error:", error);
       return [];
     }
@@ -162,22 +172,33 @@ const GamePlay = () => {
 
     return [newMove, newChess];
   }
+  //   },
+  //   [chess, game, makeMoveReq]
+  // );
 
   // 'MAKE MOVE' RESPONSE
+
   useEffect(() => {
+    // console.log("makeMoveRes effect runs", makeMoveRes);
+    // console.log("chess.pgn():", chess.pgn());
+    // console.log("game.pgn:", game.pgn);
+    // console.log("data.pgn:", makeMoveRes.data?.pgn);
     const { data, loading, error } = makeMoveRes;
 
     if (data) {
-      // console.log("makeMoveData:", data);
-      localStorage.setItem("cm-game", JSON.stringify(data));
-      setGame(data);
+      if (data.pgn === chess.pgn()) {
+        console.log("Move has been made \n", data.pgn);
+        localStorage.setItem("cm-game", JSON.stringify(data));
+        setGame(data);
+        if (loading) console.log("Sending new move...");
+        if (error) console.log("error:", error);
+      }
     }
-    if (loading) console.log("loading...");
-    if (error) console.log("error:", error);
+    // eslint-disable-next-line
   }, [makeMoveRes]);
 
   function onDrop(sourceSquare: Square, targetSquare: Square) {
-    const [newMove, newChess] = makeAMove({
+    const [newMove] = makeAMove({
       from: sourceSquare,
       to: targetSquare,
       promotion: "q", // CHANGE THIS TO USER INPUT
@@ -202,42 +223,49 @@ const GamePlay = () => {
       );
     }
 
-    // Evaluate the new position with Stockfish
-    if (
-      isCpuGame &&
-      ((newMove?.color === "b" && playerWhiteId === "cpu") ||
-        (newMove?.color === "w" && playerBlackId === "cpu"))
-    ) {
-      engine.current.stop(); // Ensure the engine is stopped before starting a new evaluation
-      engine.current.evaluatePosition(newMove.after, 3); // Set depth to 15 or any desired depth
-
-      // LISTEN FOR THE EVALUATION RESULT
-      engine.current.onMessage(({ bestMove }) => {
-        console.log("Stockfish best move:", bestMove);
-        if (bestMove) {
-          const from = bestMove.slice(0, 2);
-          const to = bestMove.slice(2, 4);
-          const promotion = bestMove.slice(4, 5) as
-            | "q"
-            | "r"
-            | "b"
-            | "n"
-            | undefined;
-
-          makeAMove({
-            from,
-            to,
-            promotion,
-            pgn: newChess?.pgn(),
-            playerId: "cpu",
-            isCpuMove: true,
-          });
-        }
-      });
-    }
-
     return true;
   }
+
+  useEffect(() => {
+    if (
+      isCpuGame &&
+      ((chess.turn() === "w" && playerWhiteId === "cpu") ||
+        (chess.turn() === "b" && playerBlackId === "cpu"))
+    ) {
+      console.log("chess.pgn() in cpuMove effect \n", chess.pgn());
+      setTimeout(() => {
+        cpuMove(chess, game, makeAMove);
+
+        // engine.current.stop(); // Ensure the engine is stopped before starting a new evaluation
+        // engine.current.evaluatePosition(chess.fen(), 3); // Set depth to 15 or any desired depth
+
+        // // LISTEN FOR THE EVALUATION RESULT
+        // engine.current.onMessage(({ bestMove }) => {
+        //   console.log("Stockfish best move:", bestMove);
+        //   if (bestMove) {
+        //     const from = bestMove.slice(0, 2);
+        //     const to = bestMove.slice(2, 4);
+        //     const promotion = bestMove.slice(4, 5) as
+        //       | "q"
+        //       | "r"
+        //       | "b"
+        //       | "n"
+        //       | undefined;
+
+        //     makeAMove({
+        //       from,
+        //       to,
+        //       promotion,
+        //       pgn: chess.pgn(),
+        //       playerId: "cpu",
+        //       isCpuMove: true,
+        //     });
+        //   }
+        // });
+      }, 1500);
+    }
+    // eslint-disable-next-line
+  }, [chess]);
 
   // GET NEW MOVE FROM SERVER
   useEffect(() => {
@@ -247,14 +275,14 @@ const GamePlay = () => {
     });
   });
 
-  // STOCKFISH CLEANUP
-  useEffect(() => {
-    return () => {
-      engine.current.stop();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      engine.current.quit();
-    };
-  }, []);
+  // // STOCKFISH CLEANUP
+  // useEffect(() => {
+  //   return () => {
+  //     engine.current.stop();
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //     engine.current.quit();
+  //   };
+  // }, []);
 
   return (
     <div className="page-container">
@@ -263,6 +291,7 @@ const GamePlay = () => {
           (povColor === "w" ? displayNameBlack : displayNameWhite) +
             playerStatus}
       </StatusBox>
+
       <Board
         game={game}
         position={chess.fen()}
@@ -271,11 +300,13 @@ const GamePlay = () => {
         onDrop={onDrop}
         povColor={povColor}
       />
+
       <StatusBox isActive={chess.turn() === povColor}>
         {chess.turn() === povColor &&
           (povColor === "w" ? displayNameWhite : displayNameBlack) +
             playerStatus}
       </StatusBox>
+
       <section className="controls">
         <Link to="/games">
           <button>Back to Games</button>

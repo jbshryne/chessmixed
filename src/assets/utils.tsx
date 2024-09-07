@@ -47,3 +47,8 @@ export const convertPositionObjectToFen = (
 export const enemyColor = (color: Color): Color => {
   return color === "w" ? "b" : "w";
 };
+
+export const confirmChoice = (message: string) => {
+  // return confirm(message);
+  if (message) return true;
+};

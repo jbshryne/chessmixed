@@ -47,9 +47,7 @@ const Board = ({
           boardOrientation={boardOrientation}
           getPositionObject={(position) => getPositionObject(position)}
           onPieceDrop={onDrop}
-        >
-          {/* <SparePiece piece="wN" width={80} dndId="didi" /> */}
-        </Chessboard>
+        ></Chessboard>
       </div>
     </>
   );

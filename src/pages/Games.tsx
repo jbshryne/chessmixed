@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useFetch, useNavigateGames } from "../assets/hooks";
 import { Game, User } from "../types";
 import { Chessboard } from "react-chessboard";
@@ -8,8 +9,10 @@ const Games = () => {
   const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
   const [allGames, setAllGames] = useState<Game[]>([]);
 
+  const navigate = useNavigate();
+
   const [fetchGamesReq, fetchGamesRes] = useFetch<Game[]>();
-  const { newGame, playGame, editGame, deleteGame } = useNavigateGames();
+  const { playGame, editGame, deleteGame } = useNavigateGames();
 
   useEffect(() => {
     fetchGamesReq("games", "POST", { userId: currentUser._id });
@@ -29,6 +32,11 @@ const Games = () => {
       console.error(error);
     }
   }, [fetchGamesRes]);
+
+  function newGame() {
+    localStorage.removeItem("cm-game");
+    navigate("/new-game");
+  }
 
   return (
     <div className="page-container">

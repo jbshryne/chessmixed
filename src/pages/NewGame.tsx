@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useFetch } from "../assets/hooks";
+import { useFetch, useNavigateGames } from "../assets/hooks";
 import { convertPositionObjectToFen } from "../assets/utils";
-import { Game, User, Player } from "../types";
+import { User, Player } from "../types";
 import { Color } from "chess.js";
 import Board from "../components/Board";
 import Dropdown from "react-dropdown";
@@ -23,18 +22,13 @@ const NewGame = () => {
   const [currentTurn, setCurrentTurn] = useState<Color>("w");
   // const [difficulty, setDifficulty] = useState<number>(1);
 
-  const navigate = useNavigate();
-
-  const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
-  if (!selectedGame) {
-    // navigate("/games");
-  }
+  // const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
+  // if (!selectedGame) {
+  //   navigate("/games");
+  // }
 
   const [fetchFriendsReq, fetchFriendsRes] = useFetch<Player[]>();
-  const [createGameReq, createGameRes] = useFetch<{
-    game: Game;
-    success: boolean;
-  }>();
+  const { createGame } = useNavigateGames();
 
   const handleSetFen = (position: Record<string, string>) => {
     const newFen = convertPositionObjectToFen(position);
@@ -52,11 +46,17 @@ const NewGame = () => {
     }
   };
 
-  if (povColor === "b" && playerBlackId !== currentUser._id) {
-    setPlayerBlackId(currentUser._id);
-  } else if (povColor === "w" && playerWhiteId !== currentUser._id) {
-    setPlayerWhiteId(currentUser._id);
-  }
+  const handleSetPovColor = (color: Color) => {
+    setPovColor(color);
+
+    if (color === "w") {
+      setPlayerWhiteId(currentUser._id);
+      setPlayerBlackId(selectedOpponent.value);
+    } else {
+      setPlayerWhiteId(selectedOpponent.value);
+      setPlayerBlackId(currentUser._id);
+    }
+  };
 
   // POPULATE FRIENDS LIST (REQUEST)
   useEffect(() => {
@@ -96,62 +96,41 @@ const NewGame = () => {
     });
   }
 
-  // CREATE GAME
-  function createGame() {
-    console.log("Create Game");
-
-    if (!playerWhiteId || !playerBlackId) {
-      alert("Please select an opponent");
-      return;
-    }
-
-    createGameReq("games/create", "POST", {
+  const handleCreateGame = () => {
+    const newGame = {
       playerWhiteId,
       playerBlackId,
-      povColor,
-      currentTurn,
-      fen,
-      // difficulty: ,
-    });
-  }
+      fen: fen,
+      currentTurn: currentTurn,
+      povColor: povColor,
+    };
 
-  useEffect(() => {
-    const { data, error, loading } = createGameRes;
-
-    if (data) {
-      console.log("Game created:", data.game);
-      localStorage.setItem("cm-game", JSON.stringify(data.game));
-      navigate("/game");
-    }
-    if (error) {
-      console.error(error);
-    }
-    if (loading) {
-      console.log("Loading...");
-    }
-  }, [createGameRes, navigate]);
+    createGame(newGame);
+  };
 
   return (
     <div className="page-container">
       <h1>New Game</h1>
       <section>
         <span>Which is your color?</span>
+
         <input
           type="radio"
           id="white"
           name="color"
           value="w"
           checked={povColor === "w"}
-          onChange={() => setPovColor("w")}
+          onChange={() => handleSetPovColor("w")}
         />
         <label htmlFor="white">White</label>
+
         <input
           type="radio"
           id="black"
           name="color"
           value="b"
           checked={povColor === "b"}
-          onChange={() => setPovColor("b")}
+          onChange={() => handleSetPovColor("b")}
         />
         <label htmlFor="black">Black</label>
       </section>
@@ -189,7 +168,7 @@ const NewGame = () => {
         {/* <div></div> */}
         <Board getPositionObject={handleSetFen} povColor={povColor} />
       </section>
-      <button onClick={() => createGame()}>Create Game</button>
+      <button onClick={() => handleCreateGame()}>Create Game</button>
     </div>
   );
 };
