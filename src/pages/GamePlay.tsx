@@ -1,15 +1,10 @@
-import {
-  useState,
-  useEffect,
-  // useRef
-} from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import socket from "../assets/socket";
 import { useFetch, useNavigateGames, useCpuPlayer } from "../assets/hooks";
 import { Game, MoveShort } from "../types";
 import { Chess, Move, Color, Square } from "chess.js";
 import { Piece as PieceSymbol } from "react-chessboard/dist/chessboard/types";
-// import { Engine } from "../assets/classes";
 import { enemyColor } from "../assets/utils";
 import Board from "../components/Board";
 import StatusBox from "../components/StatusBox";
@@ -18,7 +13,6 @@ const GamePlay = () => {
   const currentUser = JSON.parse(localStorage.getItem("cm-user")!);
   const selectedGame: Game = JSON.parse(localStorage.getItem("cm-game")!);
 
-  // const engine = useRef(new Engine());
   const navigate = useNavigate();
 
   const [fetchGameReq, fetchGameRes] = useFetch<Game>();
@@ -26,7 +20,7 @@ const GamePlay = () => {
 
   const { editGame } = useNavigateGames();
 
-  const cpuMove = useCpuPlayer();
+  const cpuMove = useCpuPlayer(makeAMove);
 
   const chessObject = new Chess();
   if (selectedGame.pgn) {
@@ -53,11 +47,7 @@ const GamePlay = () => {
   useEffect(() => {
     const { data, loading, error } = fetchGameRes;
 
-    if (data) {
-      // console.log("data:", data);
-      // localStorage.setItem("cm-game", JSON.stringify(data));
-      setGame(data);
-    }
+    if (data) setGame(data);
     if (loading) console.log("Fetching game...");
     if (error) console.log("error:", error);
   }, [fetchGameRes]);
@@ -83,7 +73,7 @@ const GamePlay = () => {
     povColor = game.povColor;
   }
 
-  const isDraggablePiece = (piece: PieceSymbol) => {
+  function isDraggablePiece(piece: PieceSymbol) {
     const pieceColor = piece[0];
 
     if (chess.isCheckmate()) return false;
@@ -105,17 +95,37 @@ const GamePlay = () => {
           pieceColor === "b")
       );
     }
-  };
+  }
 
-  // IS CHECKMATE?
-  useEffect(() => {
-    if (chess.isCheckmate()) {
-      setPlayerStatus(" is in checkmate!");
+  function onDrop(sourceSquare: Square, targetSquare: Square) {
+    const [newMove] = makeAMove({
+      from: sourceSquare,
+      to: targetSquare,
+      promotion: "q", // CHANGE THIS TO USER INPUT
+      playerId: currentUser._id,
+    });
+
+    // illegal move
+    if (newMove === null) return false;
+
+    if (!isLocalGame && !isCpuGame) {
+      console.log("sending move to server...");
+
+      socket.emit(
+        "sendNewMove",
+        {
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: "q",
+          playerId: currentUser._id,
+        },
+        `game-${game._id}`
+      );
     }
-  }, [chess]);
 
-  // const makeAMove = useCallback(
-  //   (move: MoveShort): [Move, Chess] | [] => {
+    return true;
+  }
+
   function makeAMove(move: MoveShort): [Move, Chess] | [] {
     const newChess = new Chess();
     let newMove: Move;
@@ -172,17 +182,9 @@ const GamePlay = () => {
 
     return [newMove, newChess];
   }
-  //   },
-  //   [chess, game, makeMoveReq]
-  // );
 
   // 'MAKE MOVE' RESPONSE
-
   useEffect(() => {
-    // console.log("makeMoveRes effect runs", makeMoveRes);
-    // console.log("chess.pgn():", chess.pgn());
-    // console.log("game.pgn:", game.pgn);
-    // console.log("data.pgn:", makeMoveRes.data?.pgn);
     const { data, loading, error } = makeMoveRes;
 
     if (data) {
@@ -197,35 +199,14 @@ const GamePlay = () => {
     // eslint-disable-next-line
   }, [makeMoveRes]);
 
-  function onDrop(sourceSquare: Square, targetSquare: Square) {
-    const [newMove] = makeAMove({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q", // CHANGE THIS TO USER INPUT
-      playerId: currentUser._id,
-    });
-
-    // illegal move
-    if (newMove === null) return false;
-
-    if (!isLocalGame && !isCpuGame) {
-      console.log("sending move to server...");
-
-      socket.emit(
-        "sendNewMove",
-        {
-          from: sourceSquare,
-          to: targetSquare,
-          promotion: "q",
-          playerId: currentUser._id,
-        },
-        `game-${game._id}`
-      );
+  // IS CHECKMATE?
+  useEffect(() => {
+    if (chess.isCheckmate()) {
+      setPlayerStatus(" is in checkmate!");
     }
+  }, [chess]);
 
-    return true;
-  }
-
+  // TRIGGER CPU MOVE
   useEffect(() => {
     if (
       isCpuGame &&
@@ -233,36 +214,7 @@ const GamePlay = () => {
         (chess.turn() === "b" && playerBlackId === "cpu"))
     ) {
       console.log("chess.pgn() in cpuMove effect \n", chess.pgn());
-      setTimeout(() => {
-        cpuMove(chess, game, makeAMove);
-
-        // engine.current.stop(); // Ensure the engine is stopped before starting a new evaluation
-        // engine.current.evaluatePosition(chess.fen(), 3); // Set depth to 15 or any desired depth
-
-        // // LISTEN FOR THE EVALUATION RESULT
-        // engine.current.onMessage(({ bestMove }) => {
-        //   console.log("Stockfish best move:", bestMove);
-        //   if (bestMove) {
-        //     const from = bestMove.slice(0, 2);
-        //     const to = bestMove.slice(2, 4);
-        //     const promotion = bestMove.slice(4, 5) as
-        //       | "q"
-        //       | "r"
-        //       | "b"
-        //       | "n"
-        //       | undefined;
-
-        //     makeAMove({
-        //       from,
-        //       to,
-        //       promotion,
-        //       pgn: chess.pgn(),
-        //       playerId: "cpu",
-        //       isCpuMove: true,
-        //     });
-        //   }
-        // });
-      }, 1500);
+      cpuMove(chess, game);
     }
     // eslint-disable-next-line
   }, [chess]);
@@ -274,15 +226,6 @@ const GamePlay = () => {
       if (move.playerId !== currentUser._id) makeAMove(move);
     });
   });
-
-  // // STOCKFISH CLEANUP
-  // useEffect(() => {
-  //   return () => {
-  //     engine.current.stop();
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //     engine.current.quit();
-  //   };
-  // }, []);
 
   return (
     <div className="page-container">

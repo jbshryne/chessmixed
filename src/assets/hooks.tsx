@@ -82,9 +82,10 @@ export function useNavigateGames() {
   function createGame(gameData: {
     playerWhiteId: string;
     playerBlackId: string;
-    fen: string;
     povColor: Color;
+    fen: string;
     currentTurn: Color;
+    difficulty?: number;
   }) {
     console.log("Create Game");
 
@@ -161,47 +162,93 @@ export function useNavigateGames() {
   return { createGame, playGame, editGame, saveGame, deleteGame };
 }
 
-export function useCpuPlayer() {
+export function useCpuPlayer(makeAMove: (move: MoveShort) => void) {
   const engine = new Engine();
+  const [gptMoveReq, gptMoveRes] = useFetch<MoveShort>();
+  const newChess = new Chess();
 
-  const cpuMove = (
-    chess: Chess,
-    game: Game,
-    makeAMove: (move: MoveShort) => void
-  ) => {
+  const cpuMove = (chess: Chess, game: Game) => {
     console.log(game.difficulty);
     const fen = chess.fen();
+    // let gptApiCallCount = 0;
 
-    engine.stop(); // Ensure the engine is stopped before starting a new evaluation
-    engine.evaluatePosition(chess.fen(), 3); // Set depth to 15 or any desired depth
+    newChess.loadPgn(chess.pgn());
 
-    // LISTEN FOR THE EVALUATION RESULT
-    engine.onMessage(({ bestMove }) => {
-      console.log("Stockfish best move:", bestMove);
-      if (bestMove) {
-        const from = bestMove.slice(0, 2);
-        const to = bestMove.slice(2, 4);
-        const promotion = bestMove.slice(4, 5) as
-          | "q"
-          | "r"
-          | "b"
-          | "n"
-          | undefined;
-
-        console.log("chess.pgn() in stockfish onMessage \n", fen);
-        console.log("game.pgn in stockfish onMessage \n", game.fen);
-
-        makeAMove({
-          from,
-          to,
-          promotion,
+    if (game.difficulty === 1) {
+      console.log("GPT move request...");
+      setTimeout(() => {
+        gptMoveReq(`games/${game._id}/gpt-move`, "POST", {
+          fen,
           pgn: chess.pgn(),
-          playerId: "cpu",
-          isCpuMove: true,
+          validMoves: chess.moves({ verbose: true }),
+          cpuOpponentColor: game.playerWhite.playerId === "cpu" ? "w" : "b",
         });
-      }
-    });
+      }, 1000);
+    } else if (game.difficulty === 2 || game.difficulty === 3) {
+      console.log("Stockfish move request...");
+      const depth = game.difficulty === 2 ? 3 : 20;
+      const timeoutLength = game.difficulty === 2 ? 1500 : 0;
+
+      setTimeout(() => {
+        engine.stop();
+        engine.evaluatePosition(chess.fen(), depth);
+
+        // LISTEN FOR THE EVALUATION RESULT
+        engine.onMessage(({ bestMove }) => {
+          console.log("Stockfish best move:", bestMove);
+          if (bestMove) {
+            const from = bestMove.slice(0, 2);
+            const to = bestMove.slice(2, 4);
+            const promotion = bestMove.slice(4, 5) as
+              | "q"
+              | "r"
+              | "b"
+              | "n"
+              | undefined;
+
+            console.log("chess.pgn() in stockfish onMessage \n", fen);
+            console.log("game.pgn in stockfish onMessage \n", game.fen);
+
+            makeAMove({
+              from,
+              to,
+              promotion,
+              pgn: chess.pgn(),
+              playerId: "cpu",
+              isCpuMove: true,
+            });
+          }
+        });
+      }, timeoutLength);
+    }
   };
+
+  useEffect(() => {
+    const { data, loading, error } = gptMoveRes;
+
+    if (data) {
+      console.log("GPT move:", data);
+      const from = data.from;
+      const to = data.to;
+      const promotion = data.promotion as "q" | "r" | "b" | "n" | undefined;
+
+      makeAMove({
+        from,
+        to,
+        promotion,
+        pgn: newChess.pgn(),
+        playerId: "cpu",
+        isCpuMove: true,
+      });
+    }
+    if (loading) {
+      console.log("Loading GPT move...");
+    }
+    if (error) {
+      console.error(error);
+    }
+    // eslint-disable-next-line
+  }, [gptMoveRes]);
 
   // STOCKFISH CLEANUP
   useEffect(() => {
