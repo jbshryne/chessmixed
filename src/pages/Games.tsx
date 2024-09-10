@@ -4,6 +4,7 @@ import { useFetch, useNavigateGames } from "../assets/hooks";
 import { Game, User } from "../types";
 import { Chessboard } from "react-chessboard";
 import "../styles/pages/Games.css";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 
 const Games = () => {
   const currentUser: User = JSON.parse(localStorage.getItem("cm-user")!);
@@ -51,6 +52,14 @@ const Games = () => {
               ? game.playerBlack.displayName
               : game.playerWhite.displayName;
 
+          let boardOrientation: BoardOrientation;
+          if (game.playerWhite.playerId !== game.playerBlack.playerId) {
+            boardOrientation =
+              game.playerWhite.playerId === currentUser._id ? "white" : "black";
+          } else {
+            boardOrientation = game.povColor === "b" ? "black" : "white";
+          }
+
           return (
             <li key={game._id} className="thumbnail-container">
               <h3>Opponent: {opponentName}</h3>
@@ -64,7 +73,7 @@ const Games = () => {
                   id={game._id}
                   position={game.fen}
                   arePiecesDraggable={false}
-                  boardOrientation={game.povColor === "b" ? "black" : "white"}
+                  boardOrientation={boardOrientation}
                 />
               </div>
 

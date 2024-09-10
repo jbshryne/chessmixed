@@ -1,6 +1,7 @@
 import {
   useState,
   useEffect,
+  useCallback,
   // useRef
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -162,72 +163,79 @@ export function useNavigateGames() {
   return { createGame, playGame, editGame, saveGame, deleteGame };
 }
 
+let cpuMoveCount = 0;
+
 export function useCpuPlayer(makeAMove: (move: MoveShort) => void) {
   const engine = new Engine();
   const [gptMoveReq, gptMoveRes] = useFetch<MoveShort>();
   const newChess = new Chess();
 
-  const cpuMove = (chess: Chess, game: Game) => {
-    console.log(game.difficulty);
-    const fen = chess.fen();
-    // let gptApiCallCount = 0;
+  const cpuMove = useCallback(
+    (chess: Chess, game: Game) => {
+      console.log(game.difficulty);
+      const fen = chess.fen();
+      // let gptApiCallCount = 0;
 
-    newChess.loadPgn(chess.pgn());
+      newChess.loadPgn(chess.pgn());
 
-    if (game.difficulty === 1) {
-      console.log("GPT move request...");
-      setTimeout(() => {
-        gptMoveReq(`games/${game._id}/gpt-move`, "POST", {
-          fen,
-          pgn: chess.pgn(),
-          validMoves: chess.moves({ verbose: true }),
-          cpuOpponentColor: game.playerWhite.playerId === "cpu" ? "w" : "b",
-        });
-      }, 1000);
-    } else if (game.difficulty === 2 || game.difficulty === 3) {
-      console.log("Stockfish move request...");
-      const depth = game.difficulty === 2 ? 3 : 20;
-      const timeoutLength = game.difficulty === 2 ? 1500 : 0;
+      if (game.difficulty === 1) {
+        console.log("GPT move request...");
+        setTimeout(() => {
+          gptMoveReq(`games/${game._id}/gpt-move`, "POST", {
+            fen,
+            pgn: newChess.pgn(),
+            validMoves: newChess.moves({ verbose: true }),
+            cpuOpponentColor: game.playerWhite.playerId === "cpu" ? "w" : "b",
+          });
+        }, 1000);
+      } else if (game.difficulty === 2 || game.difficulty === 3) {
+        console.log("Stockfish move request...");
+        const depth = game.difficulty === 2 ? 3 : 20;
+        const timeoutLength = game.difficulty === 2 ? 1500 : 0;
 
-      setTimeout(() => {
-        engine.stop();
-        engine.evaluatePosition(chess.fen(), depth);
+        setTimeout(() => {
+          engine.stop();
+          engine.evaluatePosition(newChess.fen(), depth);
 
-        // LISTEN FOR THE EVALUATION RESULT
-        engine.onMessage(({ bestMove }) => {
-          console.log("Stockfish best move:", bestMove);
-          if (bestMove) {
-            const from = bestMove.slice(0, 2);
-            const to = bestMove.slice(2, 4);
-            const promotion = bestMove.slice(4, 5) as
-              | "q"
-              | "r"
-              | "b"
-              | "n"
-              | undefined;
+          // LISTEN FOR THE EVALUATION RESULT
+          engine.onMessage(({ bestMove }) => {
+            console.log("Stockfish best move:", bestMove);
+            if (bestMove) {
+              const from = bestMove.slice(0, 2);
+              const to = bestMove.slice(2, 4);
+              const promotion = bestMove.slice(4, 5) as
+                | "q"
+                | "r"
+                | "b"
+                | "n"
+                | undefined;
 
-            console.log("chess.pgn() in stockfish onMessage \n", fen);
-            console.log("game.pgn in stockfish onMessage \n", game.fen);
-
-            makeAMove({
-              from,
-              to,
-              promotion,
-              pgn: chess.pgn(),
-              playerId: "cpu",
-              isCpuMove: true,
-            });
-          }
-        });
-      }, timeoutLength);
-    }
-  };
+              makeAMove({
+                from,
+                to,
+                promotion,
+                pgn: newChess.pgn(),
+                playerId: "cpu",
+                isCpuMove: true,
+              });
+            }
+          });
+        }, timeoutLength);
+      }
+    },
+    [engine, gptMoveReq, makeAMove, newChess]
+  );
 
   useEffect(() => {
     const { data, loading, error } = gptMoveRes;
 
     if (data) {
       console.log("GPT move:", data);
+      ++cpuMoveCount;
+      if (cpuMoveCount > 1) {
+        console.log("CPU move count exceeded");
+        return;
+      }
       const from = data.from;
       const to = data.to;
       const promotion = data.promotion as "q" | "r" | "b" | "n" | undefined;
@@ -259,5 +267,9 @@ export function useCpuPlayer(makeAMove: (move: MoveShort) => void) {
     // eslint-disable-next-line
   }, []);
 
-  return cpuMove;
+  const resetMoveCount = () => {
+    cpuMoveCount = 0;
+  };
+
+  return { cpuMove, resetMoveCount };
 }

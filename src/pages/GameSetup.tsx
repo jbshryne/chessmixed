@@ -53,7 +53,7 @@ const GameSetup = () => {
   const whiteToMoveInput = (
     <section className="controls">
       <label htmlFor="whiteToMove">
-        White to move
+        {selectedGame.playerWhite.displayName} to move
         <input
           type="radio"
           id="whiteToMove"
@@ -68,7 +68,7 @@ const GameSetup = () => {
   const blackToMoveInput = (
     <section className="controls">
       <label htmlFor="blackToMove">
-        Black to move
+        {selectedGame.playerBlack.displayName} to move
         <input
           type="radio"
           id="blackToMove"

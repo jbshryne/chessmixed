@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  //  useCallback
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import socket from "../assets/socket";
 import { useFetch, useNavigateGames, useCpuPlayer } from "../assets/hooks";
+import { enemyColor } from "../assets/utils";
 import { Game, MoveShort } from "../types";
 import { Chess, Move, Color, Square } from "chess.js";
 import { Piece as PieceSymbol } from "react-chessboard/dist/chessboard/types";
-import { enemyColor } from "../assets/utils";
 import Board from "../components/Board";
 import StatusBox from "../components/StatusBox";
 
@@ -20,7 +24,7 @@ const GamePlay = () => {
 
   const { editGame } = useNavigateGames();
 
-  const cpuMove = useCpuPlayer(makeAMove);
+  const { cpuMove, resetMoveCount } = useCpuPlayer(makeAMove);
 
   const chessObject = new Chess();
   if (selectedGame.pgn) {
@@ -137,9 +141,9 @@ const GamePlay = () => {
 
     try {
       newMove = newChess.move(move);
+      // eslint-disable-next-line
     } catch (error) {
-      console.log("error:", newChess.pgn());
-      console.log("error:", error);
+      console.log("ERROR:", move);
       return [];
     }
 
@@ -192,6 +196,7 @@ const GamePlay = () => {
         console.log("Move has been made \n", data.pgn);
         localStorage.setItem("cm-game", JSON.stringify(data));
         setGame(data);
+        resetMoveCount();
         if (loading) console.log("Sending new move...");
         if (error) console.log("error:", error);
       }
@@ -217,15 +222,44 @@ const GamePlay = () => {
       cpuMove(chess, game);
     }
     // eslint-disable-next-line
-  }, [chess]);
+  }, [chess.turn()]);
 
-  // GET NEW MOVE FROM SERVER
+  // const handleCpuMove = useCallback(() => {
+  //   if (
+  //     isCpuGame &&
+  //     ((chess.turn() === "w" && playerWhiteId === "cpu") ||
+  //       (chess.turn() === "b" && playerBlackId === "cpu"))
+  //   ) {
+  //     cpuMove(chess, game);
+  //   }
+  // }, [isCpuGame, chess, game, playerWhiteId, playerBlackId, cpuMove]);
+
+  // useEffect(() => {
+  //   handleCpuMove();
+  // }, [chess, handleCpuMove]);
+
+  // // GET NEW MOVE FROM SERVER
+  // useEffect(() => {
+  //   socket.on("getNewMove", (move: MoveShort) => {
+  //     console.log("getNewMove received:", move);
+  //     if (move.playerId !== currentUser._id) makeAMove(move);
+  //   });
+  // });
+
   useEffect(() => {
-    socket.on("getNewMove", (move: MoveShort) => {
+    const handleNewMove = (move: MoveShort) => {
       console.log("getNewMove received:", move);
-      if (move.playerId !== currentUser._id) makeAMove(move);
-    });
-  });
+      if (move.playerId !== currentUser._id) {
+        makeAMove(move);
+      }
+    };
+
+    socket.on("getNewMove", handleNewMove);
+
+    return () => {
+      socket.off("getNewMove", handleNewMove);
+    };
+  }, [makeAMove, currentUser._id]); // Ensure proper dependency handling and cleanup
 
   return (
     <div className="page-container">
