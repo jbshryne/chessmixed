@@ -23,12 +23,17 @@ const Auth = ({ isLoggedIn, setIsLoggedIn }: AuthProps) => {
   };
 
   return (
-    <div>
+    <div className="page-container">
+      <br />
       <ConnectionChecker />
       {!isLoggedIn && authMode === "login" && (
         <>
           <Login handleLogin={handleLogin} />
-          <button onClick={() => setAuthMode("signup")}>Sign Up</button>
+          <br />
+          <span>
+            Don't have an account yet?{" "}
+            <button onClick={() => setAuthMode("signup")}>Sign Up</button>
+          </span>
         </>
       )}
       {!isLoggedIn && authMode === "signup" && (

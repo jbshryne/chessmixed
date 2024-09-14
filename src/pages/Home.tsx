@@ -10,7 +10,7 @@ const Home = () => {
       <br />
       <img
         id="hero-image"
-        src="src/assets/images/chessmixed-hero-edit.png"
+        src="public/images/chessmixed-hero-edit.png"
         alt="two opposing castles on stylized chess board"
       />
     </div>

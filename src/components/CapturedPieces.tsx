@@ -21,18 +21,30 @@ const CapturedPieces = ({ captured }: CapturedPiecesProps) => {
     return pieceValue[b.type] - pieceValue[a.type];
   });
 
-  const capturedList = sortedCaptured.map((piece, index) => {
-    return (
-      <div key={index}>
-        <img
-          src={`images/pieces/${piece.color}${piece.type.toUpperCase()}.svg`}
-          alt=""
-        />
-      </div>
-    );
-  });
+  const capturedList = sortedCaptured.reduce(
+    (acc: { [key: string]: number }, piece) => {
+      const pieceKey = `${piece.color}${piece.type.toUpperCase()}`;
+      if (!acc[pieceKey]) {
+        acc[pieceKey] = 1;
+      } else {
+        acc[pieceKey]++;
+      }
+      return acc;
+    },
+    {}
+  );
 
-  return <div>{capturedList}</div>;
+  const capturedPieces = Object.entries(capturedList).map(
+    ([pieceKey, count]) => {
+      return (
+        <div key={pieceKey}>
+          <img src={`images/pieces/${pieceKey}.svg`} alt="" /> x {count}
+        </div>
+      );
+    }
+  );
+
+  return <div className="shaded-container">{capturedPieces}</div>;
 };
 
 export default CapturedPieces;

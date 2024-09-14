@@ -46,7 +46,7 @@ const Login = ({ handleLogin }: LoginProps) => {
     <div>
       <form onSubmit={handleSubmit}>
         <label htmlFor="username">
-          Username:
+          Username:{" "}
           <input
             type="text"
             id="username"
@@ -56,9 +56,9 @@ const Login = ({ handleLogin }: LoginProps) => {
               setFormData({ ...formData, username: e.target.value })
             }
           />
-        </label>
+        </label>{" "}
         <label htmlFor="password">
-          Password:
+          Password:{" "}
           <input
             type="password"
             id="password"
@@ -68,7 +68,7 @@ const Login = ({ handleLogin }: LoginProps) => {
               setFormData({ ...formData, password: e.target.value })
             }
           />
-        </label>
+        </label>{" "}
         <button type="submit">Login</button>
       </form>
     </div>
