@@ -1,3 +1,4 @@
+import ConnectionChecker from "../components/ConnectionChecker";
 import "../styles/pages/Home.css";
 
 const Home = () => {
@@ -10,9 +11,10 @@ const Home = () => {
       <br />
       <img
         id="hero-image"
-        src="public/images/chessmixed-hero-edit.png"
+        src="/images/chessmixed-hero-edit.png"
         alt="two opposing castles on stylized chess board"
       />
+      <ConnectionChecker />
     </div>
   );
 };
